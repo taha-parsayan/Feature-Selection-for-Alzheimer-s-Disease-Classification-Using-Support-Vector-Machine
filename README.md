@@ -96,7 +96,7 @@ Support Vector Machine (SVM) was implemented with:
 ## Key Results (will be updated when the paper is published)
 
 ### Feature Selection
-- Significant ROIs identified for both SUVR and volume features across AD vs. MCI and MCI vs. NC groups.
+- Significant ROIs were identified for both SUVR and volume features across AD vs. MCI and MCI vs. NC groups.
 
 ### Classification
 - Performance metrics for AD vs. MCI and MCI vs. NC:
@@ -109,7 +109,7 @@ Support Vector Machine (SVM) was implemented with:
 - Impact of feature selection on SVM classification performance.
 
 ## License
-This project is licensed under [MIT License](LICENSE).
+This project is licensed under [Apache License](LICENSE).
 
 ## Acknowledgments
 The dataset used in this study is sourced from the ADNI database. Special thanks to the research teams contributing to Alzheimer's Disease diagnostics and PET-MRI advancements.
