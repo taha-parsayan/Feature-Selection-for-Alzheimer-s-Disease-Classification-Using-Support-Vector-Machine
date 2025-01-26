@@ -93,7 +93,7 @@ Support Vector Machine (SVM) was implemented with:
    python plots.py
    ```
 
-## Key Results
+## Key Results (will be updated when the paper is published)
 
 ### Feature Selection
 - Significant ROIs identified for both SUVR and volume features across AD vs. MCI and MCI vs. NC groups.
