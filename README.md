@@ -17,18 +17,18 @@ Early and accurate diagnosis of Alzheimer's Disease is critical for effective in
 
 We apply statistical tests for feature selection and use SVM classifiers to assess the classification performance.
 
-## Data Analysis
-
-### Data
+## Data
 The dataset includes:
 - **Regional SUVR:** From human brain FDG-PET images
 - **Volume Features:** From human brain MRI T1-W images
 
-### Database
+## Database
 
 This project uses data obtained from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu/) database. ADNI is a longitudinal multicenter study designed to develop clinical, imaging, genetic, and biochemical biomarkers for the early detection and tracking of Alzheimer’s disease.
 
-### Image processing
+![Image](https://github.com/user-attachments/assets/586cd243-40fd-4011-842f-efd1fd09428a)
+
+## Image processing
 
 All the PEt and MRI images were pre-processed using the SPM12 software. The pipeline included:
 - Co-registeration of PET to T1 space
@@ -40,12 +40,12 @@ Python was used for:
 - Calculating the average SUVR in every ROI
 - Calculating the cerebral volume in every ROI
 
-### Data manipulation
+## Data manipulation
 Data manipulation consisted of:
 - Outlier handling: outliers were replaced by the group median
 - Standard scaling: to remove bias from the dataset
 
-### Feature Selection
+## Feature Selection
 Statistical tests such as Levene's test (for variance equality) and two-sample t-tests were used to identify significant regions of interest (ROIs) based on corrected p-values. These selected features were then used in the SVM model.
 
 ## Machine Learning
@@ -58,6 +58,8 @@ Support Vector Machine (SVM) was implemented with:
 - Plots of SUVR and volume distributions across groups.
 - Boxplots comparing SUVR and volume by group.
 - Region-wise mean and standard deviation visualizations.
+
+![Image](https://github.com/user-attachments/assets/6be9c8b8-7e10-4689-a78b-fe8dcea4d8c3)
 
 ## Project Structure
 
