@@ -30,7 +30,7 @@ This project uses data obtained from the [Alzheimer's Disease Neuroimaging Initi
 
 ## Image processing
 
-All the PEt and MRI images were pre-processed using the SPM12 software. The pipeline included:
+All the PET and MRI images were pre-processed using the SPM12 software. The pipeline included:
 - Co-registeration of PET to T1 space
 - Normalization to the MNI standard space
 - Gray matter segmentation
