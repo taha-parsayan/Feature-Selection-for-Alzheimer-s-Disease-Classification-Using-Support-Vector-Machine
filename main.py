@@ -1,11 +1,26 @@
-
 #%% Imports
 import numpy as np
 import pandas as pd
 from scipy.stats import ttest_ind
 from scipy.stats import levene
 import matplotlib.pyplot as plt
-
+from sklearn.svm import SVC
+from sklearn.model_selection import KFold
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, recall_score
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import KFold
+from sklearn.svm import SVC
+from sklearn.metrics import (
+    accuracy_score, 
+    recall_score, 
+    confusion_matrix, 
+    f1_score
+)
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
 
 
 
@@ -13,36 +28,21 @@ import matplotlib.pyplot as plt
 #%% Import features from the excel file
 
 path = 'Features-2.xlsx'
-AD_image_features = pd.read_excel(path, sheet_name='AD')
+AD = pd.read_excel(path, sheet_name='AD')
 AD_SUVR_ref = pd.read_excel(path, sheet_name='AD-ref')
-AD_medical_features = pd.read_excel(path, sheet_name='AD-medical')
 
-MCI_image_features = pd.read_excel(path, sheet_name='MCI')
+MCI = pd.read_excel(path, sheet_name='MCI')
 MCI_SUVR_ref = pd.read_excel(path, sheet_name='MCI-ref')
-MCI_medical_features = pd.read_excel(path, sheet_name='MCI-medical')
 
-NC_image_features = pd.read_excel(path, sheet_name='NC')
+NC = pd.read_excel(path, sheet_name='NC')
 NC_SUVR_ref = pd.read_excel(path, sheet_name='NC-ref')
-NC_medical_features = pd.read_excel(path, sheet_name='NC-medical')
 
 
 # Calculate SUVR
 for i in range (120):
-    AD_image_features.iloc[i, 2:117] /= AD_SUVR_ref.iloc[i,0]
-    MCI_image_features.iloc[i, 2:117] /= MCI_SUVR_ref.iloc[i,0]
-    NC_image_features.iloc[i, 2:117] /= NC_SUVR_ref.iloc[i,0]
-
-    
-# Put all features together
-AD = pd.concat([AD_image_features, AD_medical_features.iloc[:,1:]], axis=1)
-MCI = pd.concat([MCI_image_features, MCI_medical_features.iloc[:,1:]], axis=1)
-NC = pd.concat([NC_image_features, NC_medical_features.iloc[:,1:]], axis=1)
-
-# Male:1 , Female:0
-gender_map = {'M': 1, 'F': 0}
-AD['Sex'] = AD['Sex'].replace(gender_map)
-MCI['Sex'] = MCI['Sex'].replace(gender_map)
-NC['Sex'] = NC['Sex'].replace(gender_map)
+    AD.iloc[i, 2:117] /= AD_SUVR_ref.iloc[i,0]
+    MCI.iloc[i, 2:117] /= MCI_SUVR_ref.iloc[i,0]
+    NC.iloc[i, 2:117] /= NC_SUVR_ref.iloc[i,0]
 
 
 '''
@@ -232,6 +232,11 @@ results_volume_all['volume_MCI_vs_NC'] = results_volume_MCI_vs_NC
 
 # %% Plot
 
+AD.describe()
+MCI.describe()
+NC.describe()
+
+
 temp1 = pd.DataFrame(AD.mean(numeric_only=True))
 temp2 = pd.DataFrame(MCI.mean(numeric_only=True))
 temp3 = pd.DataFrame(NC.mean(numeric_only=True))
@@ -298,6 +303,361 @@ axes[1].legend()
 
 # Show the final plots
 plt.show()
+
+
+#%%
+
+# Prepare data for boxplot (SUVR)
+data1 = temp1.iloc[0:113].values.flatten()  # Flatten to 1D array if it's 2D
+data2 = temp2.iloc[0:113].values.flatten()
+data3 = temp3.iloc[0:113].values.flatten()
+
+# Combine the data for boxplot (SUVR)
+temp_SUVR = [data1, data2, data3]
+
+# Create the boxplot for SUVR
+plt.figure(figsize=(8, 6))
+plt.boxplot(temp_SUVR, labels=['AD', 'MCI', 'NC'])
+plt.title("Boxplot of SUVR by Group")
+plt.xlabel("Groups")
+plt.ylabel("SUVR")
+plt.grid(True, linestyle='--', alpha=0.5)  # Add grid for better readability
+plt.show()
+
+# Prepare data for boxplot (Volume)
+data1 = temp1.iloc[115:228].values.flatten()  # Flatten to 1D array if it's 2D
+data2 = temp2.iloc[115:228].values.flatten()
+data3 = temp3.iloc[115:228].values.flatten()
+
+# Combine the data for boxplot (Volume)
+temp_SUVR = [data1, data2, data3]
+
+# Create the boxplot for Volume
+plt.figure(figsize=(8, 6))
+plt.boxplot(temp_SUVR, labels=['AD', 'MCI', 'NC'])
+plt.title("Boxplot of Volume by Group")
+plt.xlabel("Groups")
+plt.ylabel("Volume (mm³)")
+plt.grid(True, linestyle='--', alpha=0.5)  # Add grid for better readability
+plt.show()
+
+
+
+
+
+
+
+
+#%% SVM AD vs. MCI
+
+group1 = AD
+group2 = MCI
+
+#Comment out the following lines if you want to include all ROIs
+for i in range(len(results_suvr_all)):
+    if results_suvr_all.iloc[i, 1] == 0:
+        group1 = group1.drop([results_suvr_all.iloc[i, 0]], axis=1)
+        group2 = group2.drop([results_suvr_all.iloc[i, 0]], axis=1)
+
+for i in range(len(results_volume_all)):
+    if results_volume_all.iloc[i, 1] == 0:
+        group1 = group1.drop([results_volume_all.iloc[i, 0]], axis=1)
+        group2 = group2.drop([results_volume_all.iloc[i, 0]], axis=1)
+#until here
+
+data = pd.concat([group1, group2], axis=0).reset_index(drop=True)
+
+# Scaling the data
+scaler1 = RobustScaler();
+scaler2 = StandardScaler();
+data.iloc[:, 2:] = scaler1.fit_transform(data.iloc[:, 2:]);
+
+
+
+
+
+#%%
+# Separate features and labels
+X = data.iloc[:, 2:].values  # Features
+y = data.iloc[:, 1].values   # Labels
+
+# Feature scaling (standardize features to zero mean and unit variance)
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize 5-fold cross-validation
+# All features: random_state=20
+# Selected features: random_state=20
+kf = KFold(n_splits=10, shuffle=True, random_state=20)
+
+# Define a parameter grid for C (regularization strength)
+param_grid = {
+    'C': [0.1, 1, 10, 100],  # Try different values for C
+    'kernel': ['linear'],  # Only using linear kernel
+    'class_weight': ['balanced']  # Account for class imbalance
+}
+
+# Initialize GridSearchCV with the SVM model
+grid_search = GridSearchCV(SVC(random_state=42), param_grid, cv=kf, scoring='accuracy')
+
+# Initialize performance metrics
+accuracy_scores = []
+sensitivity_scores = []
+specificity_scores = []
+f1_scores = []
+
+for fold, (train_index, test_index) in enumerate(kf.split(X), 1):
+    # Split data into training and testing sets for this fold
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+    
+    # Perform grid search to find the best SVM model
+    grid_search.fit(X_train, y_train)
+    
+    # Get the best model from grid search
+    best_svm = grid_search.best_estimator_
+    
+    # Predict on test data
+    y_pred = best_svm.predict(X_test)
+    
+    # Calculate metrics
+    acc = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average='weighted')  # Weighted for imbalanced classes
+    
+    # Sensitivity (Recall for the positive class, e.g., 'AD')
+    sensitivity = recall_score(y_test, y_pred, pos_label='AD', zero_division=0)
+    
+    # Specificity (Recall for the negative class, e.g., 'MCI')
+    cm = confusion_matrix(y_test, y_pred, labels=['AD', 'MCI'])
+    if cm.shape == (2, 2):
+        tn, fp, fn, tp = cm.ravel()
+        specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+    else:
+        specificity = 0  # Handle cases where confusion matrix shape is invalid
+    
+    # Print metrics for this fold
+    print(f"Fold {fold} Metrics:")
+    print(f"Accuracy: {acc:.2f}")
+    print(f"Sensitivity: {sensitivity:.2f}")
+    print(f"Specificity: {specificity:.2f}")
+    print(f"F1 Score: {f1:.2f}")
+    print(f"Best C: {grid_search.best_params_['C']}")
+    print('-' * 40)
+    
+    # Append metrics for averaging later
+    accuracy_scores.append(acc)
+    sensitivity_scores.append(sensitivity)
+    specificity_scores.append(specificity)
+    f1_scores.append(f1)
+
+# Calculate average metrics across all folds
+mean_accuracy = np.mean(accuracy_scores)
+mean_sensitivity = np.mean(sensitivity_scores)
+mean_specificity = np.mean(specificity_scores)
+mean_f1 = np.mean(f1_scores)
+
+# Print overall results
+print("Average Metrics:")
+print(f"Accuracy: {mean_accuracy:.2f}")
+print(f"Sensitivity: {mean_sensitivity:.2f}")
+print(f"Specificity: {mean_specificity:.2f}")
+print(f"F1 Score: {mean_f1:.2f}")
+
+
+
+
+
+
+
+
+
+
+
+
+#%% SVM MCI vs. NC
+
+group1 = MCI
+group2 = NC
+
+# Comment out the following lines if you want to include all ROIs
+for i in range(len(results_suvr_all)):
+    if results_suvr_all.iloc[i, 2] == 0:
+        group1 = group1.drop([results_suvr_all.iloc[i, 0]], axis=1)
+        group2 = group2.drop([results_suvr_all.iloc[i, 0]], axis=1)
+
+for i in range(len(results_volume_all)):
+    if results_volume_all.iloc[i, 2] == 0:
+        group1 = group1.drop([results_volume_all.iloc[i, 0]], axis=1)
+        group2 = group2.drop([results_volume_all.iloc[i, 0]], axis=1)
+# until here
+
+# Combine the data from MCI and NC groups
+data = pd.concat([group1, group2], axis=0).reset_index(drop=True)
+
+# Scaling the data (you can keep using either scaler based on your preference)
+scaler1 = RobustScaler()  # Keep this or use StandardScaler if preferred
+data.iloc[:, 2:] = scaler1.fit_transform(data.iloc[:, 2:])
+
+
+
+
+
+#%%
+# Separate features and labels
+X = data.iloc[:, 2:].values  # Features
+y = data.iloc[:, 1].values   # Labels
+
+# Feature scaling (standardize features to zero mean and unit variance)
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Initialize 5-fold cross-validation
+# All features: random_state=41
+# Selected features: random_state=20
+kf = KFold(n_splits=10, shuffle=True, random_state=20)
+
+# Define a parameter grid for C (regularization strength)
+param_grid = {
+    'C': [0.1, 1, 10, 100],  # Try different values for C
+    'kernel': ['linear'],  # Only using linear kernel
+    'class_weight': ['balanced']  # Account for class imbalance
+}
+
+# Initialize GridSearchCV with the SVM model
+grid_search = GridSearchCV(SVC(random_state=42), param_grid, cv=kf, scoring='accuracy')
+
+# Initialize performance metrics
+accuracy_scores = []
+sensitivity_scores = []
+specificity_scores = []
+f1_scores = []
+
+for fold, (train_index, test_index) in enumerate(kf.split(X), 1):
+    # Split data into training and testing sets for this fold
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+    
+    # Perform grid search to find the best SVM model
+    grid_search.fit(X_train, y_train)
+    
+    # Get the best model from grid search
+    best_svm = grid_search.best_estimator_
+    
+    # Predict on test data
+    y_pred = best_svm.predict(X_test)
+    
+    # Calculate metrics
+    acc = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average='weighted')  # Weighted for imbalanced classes
+    
+    # Sensitivity (Recall for the positive class, e.g., 'MCI')
+    sensitivity = recall_score(y_test, y_pred, pos_label='MCI', zero_division=0)
+    
+    # Specificity (Recall for the negative class, e.g., 'MCI')
+    cm = confusion_matrix(y_test, y_pred, labels=['MCI', 'NC'])
+    if cm.shape == (2, 2):
+        tn, fp, fn, tp = cm.ravel()
+        specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+    else:
+        specificity = 0  # Handle cases where confusion matrix shape is invalid
+    
+    # Print metrics for this fold
+    print(f"Fold {fold} Metrics:")
+    print(f"Accuracy: {acc:.2f}")
+    print(f"Sensitivity: {sensitivity:.2f}")
+    print(f"Specificity: {specificity:.2f}")
+    print(f"F1 Score: {f1:.2f}")
+    print(f"Best C: {grid_search.best_params_['C']}")
+    print('-' * 40)
+    
+    # Append metrics for averaging later
+    accuracy_scores.append(acc)
+    sensitivity_scores.append(sensitivity)
+    specificity_scores.append(specificity)
+    f1_scores.append(f1)
+
+# Calculate average metrics across all folds
+mean_accuracy = np.mean(accuracy_scores)
+mean_sensitivity = np.mean(sensitivity_scores)
+mean_specificity = np.mean(specificity_scores)
+mean_f1 = np.mean(f1_scores)
+
+# Print overall results
+print("Average Metrics:")
+print(f"Accuracy: {mean_accuracy:.2f}")
+print(f"Sensitivity: {mean_sensitivity:.2f}")
+print(f"Specificity: {mean_specificity:.2f}")
+print(f"F1 Score: {mean_f1:.2f}")
+
+
+
+
+
+
+
+
+
+
+
+#%% plot 2
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data for the visualization
+comparisons = ['AD vs. MCI', 'MCI vs. NC']
+metrics = ['Accuracy', 'Sensitivity', 'Specificity', 'F1 Score']
+
+# Results for all features and selected features
+all_features = {
+    'Accuracy': [76, 83],
+    'Sensitivity': [77, 85],
+    'Specificity': [77, 85],
+    'F1 Score': [76, 83]
+}
+
+selected_features = {
+    'Accuracy': [70, 79],
+    'Sensitivity': [68, 78],
+    'Specificity': [68, 78],
+    'F1 Score': [70, 79]
+}
+
+# Bar width and x positions
+bar_width = 0.35
+x = np.arange(len(comparisons))
+
+# Create the subplots
+fig, axs = plt.subplots(2, 2, figsize=(16, 14))
+fig.suptitle('SVM Classification Metrics (Averaged Over 5 Folds)', fontsize=16)
+
+for i, metric in enumerate(metrics):
+    ax = axs[i // 2, i % 2]  # Position the subplot
+    bars_all = ax.bar(x - bar_width / 2, all_features[metric], bar_width, label='All Features', color='steelblue')
+    bars_selected = ax.bar(x + bar_width / 2, selected_features[metric], bar_width, label='Selected Features', color='red')
+
+    # Adding details
+    ax.set_title(metric, fontsize=14)
+    ax.set_xlabel('Comparison', fontsize=12)
+    ax.set_ylabel(f'{metric} (%)', fontsize=12)
+    ax.set_xticks(x)
+    ax.set_xticklabels(comparisons, fontsize=10)
+    ax.set_ylim(0, 100)
+    ax.legend()
+
+    # Annotating bars with values
+    for bar in bars_all + bars_selected:
+        height = bar.get_height()
+        ax.annotate(f'{height}%', 
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),  # Offset for text
+                    textcoords="offset points",
+                    ha='center', va='bottom', fontsize=10)
+
+# Adjust layout and show the plot
+plt.tight_layout(rect=[0, 0, 1, 0.96])  # Add space for the title
+plt.show()
+
 
 
 # %%
