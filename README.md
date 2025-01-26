@@ -17,7 +17,7 @@ Early and accurate diagnosis of Alzheimer's Disease is critical for effective in
 
 We apply statistical tests for feature selection and use SVM classifiers to assess the classification performance.
 
-## Features
+## Data Analysis
 
 ### Data
 The dataset includes:
@@ -28,17 +28,33 @@ The dataset includes:
 
 This project uses data obtained from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu/) database. ADNI is a longitudinal multicenter study designed to develop clinical, imaging, genetic, and biochemical biomarkers for the early detection and tracking of Alzheimer’s disease.
 
+### Image processing
+
+All the PEt and MRI images were pre-processed using the SPM12 software. The pipeline included:
+- Co-registeration of PET to T1 space
+- Normalization to the MNI standard space
+- Gray matter segmentation
+
+Python was used for:
+- Segmentation of 115 ROIs (according to the Harward-Oxford atlas)
+- Calculating the average SUVR in every ROI
+- Calculating the cerebral volume in every ROI
+
+### Data manipulation
+Data manipulation consisted of:
+- Outlier handling: outliers were replaced by the group median
+- Standard scaling: to remove bias from the dataset
 
 ### Feature Selection
-Statistical tests such as Levene's test (for variance equality) and t-tests are used to identify significant regions of interest (ROIs) based on corrected p-values. These selected features are then used in the SVM model.
+Statistical tests such as Levene's test (for variance equality) and two-sample t-tests were used to identify significant regions of interest (ROIs) based on corrected p-values. These selected features were then used in the SVM model.
 
-### Classifier
-Support Vector Machines (SVM) are implemented with:
+## Machine Learning
+Support Vector Machine (SVM) was implemented with:
 - Grid search for hyperparameter optimization.
 - RobustScaler and StandardScaler for preprocessing.
 - Performance metrics: Accuracy, F1-score, Recall, and Confusion Matrix.
 
-### Visualization
+## Visualization
 - Plots of SUVR and volume distributions across groups.
 - Boxplots comparing SUVR and volume by group.
 - Region-wise mean and standard deviation visualizations.
@@ -95,7 +111,3 @@ This project is licensed under [MIT License](LICENSE).
 
 ## Acknowledgments
 The dataset used in this study is sourced from the ADNI database. Special thanks to the research teams contributing to Alzheimer's Disease diagnostics and PET-MRI advancements.
-
---- 
-
-Let me know if you'd like further refinements!
