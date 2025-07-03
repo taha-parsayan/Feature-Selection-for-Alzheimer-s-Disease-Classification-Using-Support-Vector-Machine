@@ -806,8 +806,8 @@ bar_width = 0.35
 x = np.arange(len(comparisons))
 
 # Create the subplots
-fig, axs = plt.subplots(2, 2, figsize=(16, 14))
-fig.suptitle('SVM Classification Metrics (Averaged Over 10 Folds)', fontsize=16)
+fig, axs = plt.subplots(2, 2, figsize=(11, 11))
+# fig.suptitle('SVM Classification Metrics (Averaged Over 10 Folds)', fontsize=16)
 
 for i, metric in enumerate(metrics):
     ax = axs[i // 2, i % 2]  # Position the subplot
@@ -815,11 +815,11 @@ for i, metric in enumerate(metrics):
     bars_selected = ax.bar(x + bar_width / 2, selected_features[metric], bar_width, label='Selected Features', color='red')
 
     # Adding details
-    ax.set_title(metric, fontsize=14)
-    ax.set_xlabel('Comparison', fontsize=12)
-    ax.set_ylabel(f'{metric} (%)', fontsize=12)
+    # ax.set_title(metric, fontsize=16)
+    # ax.set_xlabel('Comparison', fontsize=16)
+    ax.set_ylabel(f'{metric} (%)', fontsize=16)
     ax.set_xticks(x)
-    ax.set_xticklabels(comparisons, fontsize=10)
+    ax.set_xticklabels(comparisons, fontsize=16)
     ax.set_ylim(0, 100)
     ax.legend()
 
@@ -830,7 +830,7 @@ for i, metric in enumerate(metrics):
                     xy=(bar.get_x() + bar.get_width() / 2, height),
                     xytext=(0, 3),  # Offset for text
                     textcoords="offset points",
-                    ha='center', va='bottom', fontsize=10)
+                    ha='center', va='bottom', fontsize=16)
 
 # Adjust layout and show the plot
 plt.tight_layout(rect=[0, 0, 1, 0.96])  # Add space for the title
