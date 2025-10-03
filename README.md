@@ -7,9 +7,7 @@
 
 # Feature Selection for Alzheimer's Disease Classification Using Support Vector Machine
 
----
 ### [Publication in IEEE](https://ieeexplore.ieee.org/abstract/document/11165970)
----
 
 This repository contains the code and data analysis pipeline for investigating the effect of feature selection on the classification of Alzheimer's Disease (AD), Mild Cognitive Impairment (MCI), and Normal Cognition (NC) using Support Vector Machines (SVM). The study focuses on leveraging regional cortical and subcortical SUVR (Standard Uptake Value Ratio) and volume features extracted from PET-MRI data.
 
