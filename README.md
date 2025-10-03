@@ -1,11 +1,15 @@
-# Feature Selection for Alzheimer's Disease Classification Using Uspport Vector Machine
-
 ![GitHub release (latest by tag)](https://img.shields.io/github/v/tag/taha-parsayan/OPETIA?label=Release)
 ![Static Badge](https://img.shields.io/badge/Neuroimaging%20software-FF0000)
 ![Static Badge](https://img.shields.io/badge/Data%20Science-CC7722)
 ![Static Badge](https://img.shields.io/badge/Python-8A2BE2)
 ![Static Badge](https://img.shields.io/badge/FSL-8A2BE2)
 ![Static Badge](https://img.shields.io/badge/PET%20/%20MRI-4CAF50)
+
+# Feature Selection for Alzheimer's Disease Classification Using Support Vector Machine
+
+---
+## [Publication in IEEE](https://ieeexplore.ieee.org/abstract/document/11165970)
+---
 
 This repository contains the code and data analysis pipeline for investigating the effect of feature selection on the classification of Alzheimer's Disease (AD), Mild Cognitive Impairment (MCI), and Normal Cognition (NC) using Support Vector Machines (SVM). The study focuses on leveraging regional cortical and subcortical SUVR (Standard Uptake Value Ratio) and volume features extracted from PET-MRI data.
 
